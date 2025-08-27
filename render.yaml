@@ -1,23 +1,11 @@
 services:
-  - type: web                    # Type of service → this is a web service
-    name: fastapi-car-price-api  # Name of your service on Render
-    env: python                  # Environment → Python (not Docker)
-    plan: free                   # Pricing plan → using Render's free tier
-    
-    buildCommand: pip install -r requirements.txt  
-    # Command to run during build step → installs dependencies from requirements.txt
-
-    startCommand: gunicorn -k uvicorn.workers.UvicornWorker app.main:app  
-    # Command to start your FastAPI app
-    # gunicorn = production server
-    # -k uvicorn.workers.UvicornWorker → tells gunicorn to use uvicorn worker
-    # app.main:app → path to FastAPI instance ("app" folder → "main.py" → "app" object)
-
+  - type: web
+    name: fastapi-car-price-api   # Name of your service on Render
+    env: docker                   # Since you are using Dockerfile
+    plan: free                    # Free plan
+    branch: main                  # Repo branch to deploy from
+    autoDeploy: true              # Auto-deploy on git push
+    dockerfilePath: ./Dockerfile  # Path to Dockerfile (correct if it's in project root)
     envVars:
       - key: MODEL_PATH
-        value: app/models/model.joblib  
-        # Environment variable → path to your ML model inside the repo
-
-      - key: REDIS_URL
-        value: redis://default:MzGbu0SdZoAPb115OTBfPc6CwCaKpEvH@redis-16653.c263.us-east-1-2.ec2.redns.redis-cloud.com:16653  
-        # Environment variable → Redis connection URL for caching/session
+        value: app/models/model.joblib
