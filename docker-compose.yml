@@ -1,0 +1,64 @@
+version: '3.9'
+
+services:
+  # ----------------------------
+  # FastAPI Application Service
+  # ----------------------------
+  api:
+    build: .                        # Build the Dockerfile in the current directory
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"                 # Expose FastAPI app on port 8000
+    environment:
+      - API_KEY=demo-key            # API key for authentication
+      - JWT_SECRET_KEY=secret       # Secret key for JWT signing
+      - REDIS_URL=redis://redis:6379  # Redis connection string
+    depends_on:
+      - redis
+      - prometheus                  # Ensure Redis and Prometheus start before API
+    networks:
+      - backend                     # Connect to backend network
+
+  # ----------------------------
+  # Redis Service
+  # ----------------------------
+  redis:
+    image: redis:alpine             # Lightweight Redis image
+    container_name: redis1
+    ports:
+      - "6379:6379"                 # Expose Redis on port 6379
+    networks:
+      - backend
+
+  # ----------------------------
+  # Prometheus Service
+  # ----------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus1
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Mount Prometheus config
+    ports:
+      - "9090:9090"                 # Expose Prometheus dashboard on port 9090
+    networks:
+      - backend
+
+  # ----------------------------
+  # Grafana Service
+  # ----------------------------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana1
+    ports:
+      - "3000:3000"                 # Expose Grafana dashboard on port 3000
+    depends_on:
+      - prometheus
+    networks:
+      - backend
+
+# ----------------------------
+# Network Configuration
+# ----------------------------
+networks:
+  backend:
+    driver: bridge                  # Bridge network to allow inter-service communication
